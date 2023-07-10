@@ -1,0 +1,4 @@
+/home/marco/Documents/basal_ganglia_model/src/build/CMakeFiles/model.dir
+/home/marco/Documents/basal_ganglia_model/src/build/CMakeFiles/main.dir
+/home/marco/Documents/basal_ganglia_model/src/build/CMakeFiles/edit_cache.dir
+/home/marco/Documents/basal_ganglia_model/src/build/CMakeFiles/rebuild_cache.dir
