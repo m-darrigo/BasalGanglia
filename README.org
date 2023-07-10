@@ -1,0 +1,13 @@
+# basal_ganglia_model
+
+#+BEGIN_HTML
+<a href='https://basal-ganglia-model.readthedocs.io/en/latest/?badge=latest'>
+    <img src='https://readthedocs.org/projects/basal-ganglia-model/badge/?version=latest' alt='Documentation Status' />
+</a>
+#+END_HTML
+
+The repository hosts the project done for my master thesis.
+
+
+The simulation code is written in C++ while the analysis is performed in python3.
+The code documentation is publicated at [[https://basal-ganglia-model.readthedocs.io/en/latest/?badge=latest][this]] link.

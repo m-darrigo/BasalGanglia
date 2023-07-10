@@ -1,0 +1,4 @@
+# list of input with correlation control variables (only if input_mode==2)
+
+rho_corr:       0.06
+corr_pops:      [D1, D2, FSN]

@@ -1,0 +1,10 @@
+t_end:                          6500  # ms
+dt:                             0.1   # ms
+n_step:                         10
+out_dir:                        output/example
+subnets_config_yaml:            config_example/config.yaml
+weights_config_yaml:            config_example/config_weights.yaml
+connections_config_yaml:        config_example/config_connections.yaml
+to_save_config_yaml:            config_example/config_to_save.yaml
+input_mode:                     0
+input_mode_config:              unused
