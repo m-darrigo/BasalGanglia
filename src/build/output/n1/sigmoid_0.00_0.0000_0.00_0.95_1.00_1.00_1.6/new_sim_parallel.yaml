@@ -1,0 +1,15 @@
+t_end:                    5000  # ms
+dt:                             0.1   # ms
+n_step:                         200
+out_dir:                        output/n1/sigmoid_0.00_0.0000_0.00_0.95_1.00_1.00_1.6
+gamma_1:                        1.0
+gamma_2:                        1.0
+gamma:                          1.6
+osc_amp:                        0.0
+osc_freq:                       0.0
+subnets_config_yaml:            TEMP-4261/config1.yaml
+weights_config_yaml:            TEMP-4261/config_weights1.yaml
+connections_config_yaml:        TEMP-4261/config_connections1.yaml
+to_save_config_yaml:            TEMP-4261/config_to_save1.yaml
+input_mode:                     0
+input_mode_config:              TEMP-4261/config_input_mode.yaml          # still not supported
