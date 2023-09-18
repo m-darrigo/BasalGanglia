@@ -54,6 +54,66 @@ def readSpikes(file):
 
     return l
 
+def burst_sequence(sequenza):
+    #questa funzione inizia contando gli 1 e poi alterna
+    conteggi = []
+    count = 1
+    prev_element = sequenza[0]
+    
+    #controlla se il primo elemento è 0 o 1
+    if prev_element == 0:
+        start_count = 0
+    else:
+        start_count = 1
+    
+    #itera su sequenza a partire dal secondo elemento
+    for element in sequenza[1:]:
+        if element == prev_element:
+            count += 1
+        else:
+            conteggi.append(count)
+            count = 1
+            prev_element = element
+    
+    conteggi.append(count)
+    
+    #se il primo elemento è 0 inserisci conteggio iniziale come 0
+    if start_count == 0:
+        conteggi.insert(0, 0)
+    
+    count = 0
+    burst = False
+    index = 0
+    blen = 0
+    lunghezza = []
+    
+    for element in conteggi[:]:
+        if (index % 2) == 0:
+            if element >= 5:
+                burst = True
+        
+        if (index % 2) == 1:
+            if element >= 5:
+                if burst == True:
+                    burst = False
+                    count += 1  
+                    lunghezza.append(blen)
+                    blen = 0
+                    
+        index += 1
+        if burst == True:
+            blen = blen + element
+    else:
+        if burst == True:
+            count += 1
+            lunghezza.append(blen)
+            
+    if count > 0:
+        avarage = sum(lunghezza)/count
+    else: avarage = 0
+    
+    print('numero di burst, lunghezza di ogni burst, lunghezza media:')
+    return count, lunghezza, avarage
 
 class SpikeSim:
     '''Class loading and parsing files given by a simulation.
@@ -273,7 +333,7 @@ class SpikeSim:
                     x,_ = np.histogram(np.concatenate(self.data[p]), bins = int((self.t_end-self.t_start)/res))
                     x = stats.zscore(x)
                     fs = 1/res*1000
-                    f, t, Sxx = signal.spectrogram(x, fs, nperseg = N_parseg, noverlap=int(N_parseg/2))
+                    f, t, Sxx = signal.spectrogram(x, fs, nperseg = N_parseg, noverlap=int(N_parseg/5))
                     plt.pcolormesh(t, f, Sxx, shading='gouraud')
                     # plt.pcolormesh(t, f, Sxx, shading='auto')
                     plt.ylim(0, 120)
@@ -284,7 +344,7 @@ class SpikeSim:
             # plt.tight_layout()
             # plt.savefig(self.input_dir+'/activity.png', dpi=500)
             plt.show()
-            print(f'nparseg = {N_parseg}\tnoverlap={int(N_parseg/2)}')
+            print(f'nparseg = {N_parseg}\tnoverlap={int(N_parseg/5)}')
         else:
             while True:
                 if pop == '':
@@ -299,14 +359,14 @@ class SpikeSim:
                 x,_ = np.histogram(np.concatenate(self.data[pop]), bins = int((self.t_end-self.t_start)/res))
                 x = stats.zscore(x)
                 fs = 1/res*1000
-                f, t, Sxx = signal.spectrogram(x, fs, nfft= 10000,nperseg = N_parseg, noverlap=int(N_parseg/2))
+                f, t, Sxx = signal.spectrogram(x, fs, nfft= 10000,nperseg = N_parseg, noverlap=int(N_parseg/5))
                 plt.pcolormesh(t, f, Sxx, shading='gouraud')
                 plt.ylim(10, 25)
                 plt.colorbar()
                 plt.title(pop)
                 plt.ylabel(f'f [Hz]')
                 plt.xlabel('t [sec]')
-                print(f'nparseg = {N_parseg}\tnoverlap={int(N_parseg/2)}')
+                print(f'nparseg = {N_parseg}\tnoverlap={int(N_parseg/5)}')
 
                 if save_img == '':
                     plt.show()
@@ -342,7 +402,7 @@ class SpikeSim:
                     x,_ = np.histogram(np.concatenate(self.data[p]), bins = int((self.t_end-self.t_start)/res))
                     x = stats.zscore(x)
                     fs = 1/res*1000
-                    f, t, Sxx = signal.spectrogram(x, fs, nperseg = N_parseg, noverlap=int(N_parseg/2))
+                    f, t, Sxx = signal.spectrogram(x, fs, nperseg = N_parseg, noverlap=int(N_parseg/5))
                     plt.pcolormesh(t, f, Sxx, shading='gouraud')
                     # plt.pcolormesh(t, f, Sxx, shading='auto')
                     plt.ylim(0, 120)
@@ -353,7 +413,7 @@ class SpikeSim:
             # plt.tight_layout()
             # plt.savefig(self.input_dir+'/activity.png', dpi=500)
             plt.show()
-            print(f'nparseg = {N_parseg}\tnoverlap={int(N_parseg/2)}')
+            print(f'nparseg = {N_parseg}\tnoverlap={int(N_parseg/5)}')
         else:
             while True:
                 if pop == '':
@@ -368,9 +428,9 @@ class SpikeSim:
                 x,_ = np.histogram(np.concatenate(self.data[pop]), bins = int((self.t_end-self.t_start)/res))
                 x = stats.zscore(x)
                 fs = 1/res*1000
-                f, t, Sxx = signal.spectrogram(x, fs, nfft= 10000,nperseg = N_parseg, noverlap=int(N_parseg/2))
+                f, t, Sxx = signal.spectrogram(x, fs, nfft= 10000,nperseg = N_parseg, noverlap=int(N_parseg/5))
                 
-                print(f'nparseg = {N_parseg}\tnoverlap={int(N_parseg/2)}')
+                print(f'nparseg = {N_parseg}\tnoverlap={int(N_parseg/5)}')
          
                 # Crea il grafico combinato
                 fig, ax1 = plt.subplots()
@@ -501,9 +561,9 @@ class SpikeSim:
                     fs = 1/res*1000
                     if Ns != {}:
                         print('do not zsc!')
-                        f, pow_welch_spect = signal.welch(x/Ns[p], fs, nperseg=nparseg, noverlap=int(nparseg/2),nfft=max(30000,nparseg), scaling='density', window='hamming')
+                        f, pow_welch_spect = signal.welch(x/Ns[p], fs, nperseg=nparseg, noverlap=int(nparseg/5),nfft=max(30000,nparseg), scaling='density', window='hamming')
                     else:
-                        f, pow_welch_spect = signal.welch(x, fs, nperseg=nparseg, noverlap=int(nparseg/2),nfft=max(30000,nparseg), scaling='density', window='hamming')
+                        f, pow_welch_spect = signal.welch(x, fs, nperseg=nparseg, noverlap=int(nparseg/5),nfft=max(30000,nparseg), scaling='density', window='hamming')
                     if show:
                         plt.subplot(rows,cols, i+1)
                         plt.plot(f, pow_welch_spect)
@@ -536,7 +596,7 @@ class SpikeSim:
                 # x = stats.zscore(x)
                 print('not_z_scored')
                 fs = 1/res*1000
-                f, pow_welch_spect = signal.welch(x, fs, nperseg=nparseg, noverlap=int(nparseg/2), nfft=max(30000,nparseg), scaling='density')
+                f, pow_welch_spect = signal.welch(x, fs, nperseg=nparseg, noverlap=int(nparseg/5), nfft=max(30000,nparseg), scaling='density')
                 if show or save_img!='' :
                     plt.plot(f, pow_welch_spect)
                     plt.xlabel(f'f [Hz]')
@@ -545,7 +605,7 @@ class SpikeSim:
                     # plt.yscale('log')
 
                     np.random.shuffle(x)
-                    f, pow_welch_spect = signal.welch(x, fs, nperseg=nparseg, noverlap=int(nparseg/2), scaling='density')
+                    f, pow_welch_spect = signal.welch(x, fs, nperseg=nparseg, noverlap=int(nparseg/5), scaling='density')
                     plt.plot(f, pow_welch_spect, label='shuffled', color='black', linewidth=0.7)
                     plt.legend()
                     # plt.plot([min(f),max(f)], [0.001]*2)
@@ -661,3 +721,5 @@ class SpikeSim:
         plt.show()
 
         return pars[0], np.sqrt(covm[0][0])
+        
+
