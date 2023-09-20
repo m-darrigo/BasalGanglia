@@ -482,7 +482,19 @@ class SpikeSim:
         
         tau = np.quantile(Sxx_max_index,0.75)
         
-        return tau
+        # con integrale #######################################################
+        
+        mask = (8 < f) & (f < 24)
+        Sxx_lim = Sxx[mask,:]
+        
+        pow_t = []
+        for i in range(len(t)):
+            pow_t.append( np.mean(Sxx_lim[:, i]) )
+
+        pow_t = np.array(pow_t)
+        tau1 = np.quantile(pow_t,0.75)
+
+        return tau, tau1
         
         
     def threshold_imgs(self, pop='', data='', dd_par='', res=1., N_parseg=500, save_img=''):
