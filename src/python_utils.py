@@ -235,7 +235,7 @@ class SpikeSim:
     def saveData(self, path):
         save_pkl(self.data, path)
 
-    def histogram(self, pop = '', res=1., save_img=''):
+    def histogram(self, pop = '', dd_par=1., res=1., save_img=''):
         '''Method showing or saving the spiking activity of a given subnet
 
         :param pop: desidered population; if 'all' is passed all population are showed.
@@ -268,7 +268,7 @@ class SpikeSim:
                 except Exception as e: print(e)
             plt.tight_layout()
             plt.subplots_adjust(wspace = 0.4, hspace = 0.5)
-            plt.suptitle('sigmoid parameter = 0.005', y = 1)
+            plt.suptitle(f'Sigmoid time constant = {1/dd_par}', y = 1)
             plt.savefig(save_img, dpi=500, facecolor='white')
             plt.show()
             #plt.close()
@@ -378,7 +378,7 @@ class SpikeSim:
                 else: pop = ''
         return [f, t, Sxx]
     
-    def periodogramdd(self, pop='', data='', dd_par='', res=1., N_parseg=500, save_img=''):
+    def periodogramdd(self, pop='', data='', dd_par=1., res=1., N_parseg=500, save_img=''):
         '''Method computing the periodogram resulting from the (z-scored) spiking activity of the passed subnetwork
         dopamine depletion condition is plotted
         
@@ -438,7 +438,7 @@ class SpikeSim:
                 # Grafico del periodogramma
                 pcm = ax1.pcolormesh(t, f, np.log(Sxx), shading='gouraud')
                 ax1.set_ylim(10, 25)
-                plt.title('Sigmoid parameter = '+ dd_par)
+                plt.title(f'Sigmoid time constant = {1/dd_par}')
                 cbar = plt.colorbar(pcm, ax=ax1, location='left', aspect=20) 
                 ax1.set_ylabel(f'f [Hz]')
                 ax1.set_xlabel('t [sec]')
@@ -464,7 +464,7 @@ class SpikeSim:
         return [f, t, Sxx]
     
     
-    def threshold(self, pop='', data='', dd_par='', res=1., N_parseg=500, save_img=''):
+    def threshold(self, pop='', data='', dd_par=1., res=1., N_parseg=500, save_img=''):
        
         output=self.periodogram(pop=pop, res=1., N_parseg=N_parseg, save_img=save_img)
         f = output[0]
@@ -497,7 +497,7 @@ class SpikeSim:
         return tau, tau1
         
         
-    def threshold_imgs(self, pop='', data='', dd_par='', res=1., N_parseg=500, save_img=''):
+    def threshold_imgs(self, pop='', data='', dd_par=1., res=1., N_parseg=500, save_img=''):
        
         output=self.periodogram(pop=pop, res=1., N_parseg=N_parseg, save_img=save_img)
         f = output[0]
