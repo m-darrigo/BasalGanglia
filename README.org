@@ -11,5 +11,3 @@ The repository hosts the project done for my master thesis.
 
 The simulation code is written in C++ while the analysis is performed in python3.
 The code documentation is publicated at [[https://basal-ganglia-model.readthedocs.io/en/latest/?badge=latest][this]] link.
-
-miao
