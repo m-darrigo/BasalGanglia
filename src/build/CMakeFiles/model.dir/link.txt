@@ -1,2 +1,2 @@
-/usr/bin/ar qc libmodel.a CMakeFiles/model.dir/model.cpp.o
+/usr/bin/ar qc libmodel.a  CMakeFiles/model.dir/model.cpp.o
 /usr/bin/ranlib libmodel.a
