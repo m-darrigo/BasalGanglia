@@ -331,7 +331,6 @@ class SpikeSim:
                 try:
                     plt.subplot(4,2, i+1)
                     x,_ = np.histogram(np.concatenate(self.data[p]), bins = int((self.t_end-self.t_start)/res))
-                    x = stats.zscore(x)
                     fs = 1/res*1000
                     f, t, Sxx = signal.spectrogram(x, fs, nperseg = N_parseg, noverlap=int(N_parseg/5))
                     plt.pcolormesh(t, f, Sxx, shading='gouraud')
@@ -357,7 +356,6 @@ class SpikeSim:
                         continue
 
                 x,_ = np.histogram(np.concatenate(self.data[pop]), bins = int((self.t_end-self.t_start)/res))
-                x = stats.zscore(x)
                 fs = 1/res*1000
                 f, t, Sxx = signal.spectrogram(x, fs, nfft= 10000,nperseg = N_parseg, noverlap=int(N_parseg/5))
                 plt.pcolormesh(t, f, Sxx, shading='gouraud')
@@ -400,7 +398,6 @@ class SpikeSim:
                 try:
                     plt.subplot(4,2, i+1)
                     x,_ = np.histogram(np.concatenate(self.data[p]), bins = int((self.t_end-self.t_start)/res))
-                    x = stats.zscore(x)
                     fs = 1/res*1000
                     f, t, Sxx = signal.spectrogram(x, fs, nperseg = N_parseg, noverlap=int(N_parseg/5))
                     plt.pcolormesh(t, f, Sxx, shading='gouraud')
@@ -426,7 +423,6 @@ class SpikeSim:
                         continue
 
                 x,_ = np.histogram(np.concatenate(self.data[pop]), bins = int((self.t_end-self.t_start)/res))
-                x = stats.zscore(x)
                 fs = 1/res*1000
                 f, t, Sxx = signal.spectrogram(x, fs, nfft= 10000,nperseg = N_parseg, noverlap=int(N_parseg/5))
                 
@@ -475,7 +471,7 @@ class SpikeSim:
         sum1 = np.sum(Sxx, axis=1) #somma per tutte frequenze
         
         # Ottieni l'indice del massimo della funzione
-        max_index = np.argmax(sum1)/10
+        max_index = np.argmax(sum1)
         max_value = sum1[np.argmax(sum1)]
         
         Sxx_max_index = Sxx[np.argmax(sum1), :]
@@ -508,7 +504,7 @@ class SpikeSim:
         sum1 = np.sum(Sxx, axis=1) #somma per tutte frequenze
         
         # Ottieni l'indice del massimo della funzione
-        max_index = np.argmax(sum1)/10
+        max_index = np.argmax(sum1)
         max_value = sum1[np.argmax(sum1)]
         print('Indice del massimo:', max_index)
         print('valore del massimo:', max_value)
