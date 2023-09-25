@@ -112,7 +112,7 @@ def burst_sequence(sequenza):
         avarage = sum(lunghezza)/count
     else: avarage = 0
     
-    print('numero di burst, lunghezza di ogni burst, lunghezza media:')
+    print('numero di burst, lunghezza di ogni burst, lunghezza media:', end=' ')
     return count, lunghezza, avarage
 
 class SpikeSim:
@@ -152,7 +152,7 @@ class SpikeSim:
         self.sim_filename = sim_fname
 
         self.t_start = neglect_t
-        self.t_end = neglect_t_end
+        self.t_end = -1
         self.dt = 0
         self.input_mode = 0
         self.rho_corr_paper = -1
@@ -317,63 +317,25 @@ class SpikeSim:
         return {self.subnets[i] : [ MAct[i], Ns[i], MActPerN[i] ] for i in range(len(self.subnets))}
 
     def periodogram(self, pop='', res=1., N_parseg=500, save_img=''):
-        '''Method computing the periodogram resulting from the (z-scored) spiking activity of the passed subnetwork'''
+        '''Method computing the periodogram resulting from the spiking activity of the passed subnetwork'''
 
-        pop_passed = True
-        if pop == '':
-            pop_passed = False
+        x,_ = np.histogram(np.concatenate(self.data[pop]), bins = int((self.t_end-self.t_start)/res))
+        fs = 1/res*1000
+        f, t, Sxx = signal.spectrogram(x, fs, nfft= 10000,nperseg = N_parseg, noverlap=int(N_parseg/5))
+        plt.pcolormesh(t, f, Sxx, shading='gouraud')
+        plt.ylim(10, 25)
+        plt.colorbar()
+        plt.title(pop)
+        plt.ylabel(f'f [Hz]')
+        plt.xlabel('t [s]')
+        print(f'nparseg = {N_parseg}\tnoverlap={int(N_parseg/5)}')
 
-
-        if pop.lower() == 'all':
-            plt.figure()
-            for i,p in enumerate(sorted(self.subnets)):
-                print(p)
-                try:
-                    plt.subplot(4,2, i+1)
-                    x,_ = np.histogram(np.concatenate(self.data[p]), bins = int((self.t_end-self.t_start)/res))
-                    fs = 1/res*1000
-                    f, t, Sxx = signal.spectrogram(x, fs, nperseg = N_parseg, noverlap=int(N_parseg/5))
-                    plt.pcolormesh(t, f, Sxx, shading='gouraud')
-                    # plt.pcolormesh(t, f, Sxx, shading='auto')
-                    plt.ylim(0, 120)
-                    plt.colorbar()
-                    plt.ylabel(f'f [Hz] {p}')
-                    
-                except Exception as e: print(e)
-            # plt.tight_layout()
-            # plt.savefig(self.input_dir+'/activity.png', dpi=500)
+        if save_img == '':
             plt.show()
-            print(f'nparseg = {N_parseg}\tnoverlap={int(N_parseg/5)}')
         else:
-            while True:
-                if pop == '':
-                    pop = input('histogram: enter subnetwork: ')
-                    if pop.lower() == 'stop':
-                        break
-                    if not pop in self.subnets:
-                        print(f'No subnet with name "{pop}", try again...')
-                        pop = ''
-                        continue
-
-                x,_ = np.histogram(np.concatenate(self.data[pop]), bins = int((self.t_end-self.t_start)/res))
-                fs = 1/res*1000
-                f, t, Sxx = signal.spectrogram(x, fs, nfft= 10000,nperseg = N_parseg, noverlap=int(N_parseg/5))
-                plt.pcolormesh(t, f, Sxx, shading='gouraud')
-                plt.ylim(10, 25)
-                plt.colorbar()
-                plt.title(pop)
-                plt.ylabel(f'f [Hz]')
-                plt.xlabel('t [s]')
-                print(f'nparseg = {N_parseg}\tnoverlap={int(N_parseg/5)}')
-
-                if save_img == '':
-                    plt.show()
-                else:
-                    plt.savefig(save_img, dpi = 500, facecolor='white')
-                    plt.close()
-
-                if pop_passed: break
-                else: pop = ''
+            plt.savefig(save_img, dpi = 500, facecolor='white')
+            plt.close()
+            
         return [f, t, Sxx]
     
     def periodogramdd(self, pop='', data='', dd_par=float('inf'), res=1., N_parseg=500, save_img=''):
@@ -386,77 +348,40 @@ class SpikeSim:
         '''
 
         data = np.loadtxt(data).T
-        pop_passed = True
-        if pop == '':
-            pop_passed = False
 
+        x,_ = np.histogram(np.concatenate(self.data[pop]), bins = int((self.t_end-self.t_start)/res))
+        fs = 1/res*1000
+        f, t, Sxx = signal.spectrogram(x, fs, nfft= 10000,nperseg = N_parseg, noverlap=int(N_parseg/5))
 
-        if pop.lower() == 'all':
-            plt.figure()
-            for i,p in enumerate(sorted(self.subnets)):
-                print(p)
-                try:
-                    plt.subplot(4,2, i+1)
-                    x,_ = np.histogram(np.concatenate(self.data[p]), bins = int((self.t_end-self.t_start)/res))
-                    fs = 1/res*1000
-                    f, t, Sxx = signal.spectrogram(x, fs, nperseg = N_parseg, noverlap=int(N_parseg/5))
-                    plt.pcolormesh(t, f, Sxx, shading='gouraud')
-                    # plt.pcolormesh(t, f, Sxx, shading='auto')
-                    plt.ylim(0, 120)
-                    plt.colorbar()
-                    plt.ylabel(f'f [Hz] {p}')
-                    
-                except Exception as e: print(e)
-            # plt.tight_layout()
-            # plt.savefig(self.input_dir+'/activity.png', dpi=500)
+        print(f'nparseg = {N_parseg}\tnoverlap={int(N_parseg/5)}')
+
+        # Crea il grafico combinato
+        fig, ax1 = plt.subplots()
+
+        # Grafico del periodogramma
+        pcm = ax1.pcolormesh(t, f, np.log(Sxx), shading='gouraud')
+        ax1.set_ylim(10, 25)
+        plt.title(f'Sigmoid time constant = {1000/dd_par} [s]')
+        cbar = plt.colorbar(pcm, ax=ax1, location='left', aspect=20) 
+        ax1.set_ylabel(f'f [Hz]')
+        ax1.set_xlabel('t [s]')
+        cbar.set_label('Log Power')
+
+        # Grafico della funzione
+        data[0] = data[0]/1000
+        data[1] = data[1]/1.083
+        ax2 = ax1.twinx()
+        ax2.plot(data[0], data[1], 'r-')
+        ax2.set_xlim(0.25, np.max(data[0]) - 0.5)
+        ax2.set_ylabel('Dopamine depletion', color='r')
+        ax2.tick_params(axis='y', labelcolor='red')
+
+        if save_img == '':
             plt.show()
-            print(f'nparseg = {N_parseg}\tnoverlap={int(N_parseg/5)}')
         else:
-            while True:
-                if pop == '':
-                    pop = input('histogram: enter subnetwork: ')
-                    if pop.lower() == 'stop':
-                        break
-                    if not pop in self.subnets:
-                        print(f'No subnet with name "{pop}", try again...')
-                        pop = ''
-                        continue
+            plt.savefig(save_img, dpi = 500, facecolor='white')
+            plt.close()
 
-                x,_ = np.histogram(np.concatenate(self.data[pop]), bins = int((self.t_end-self.t_start)/res))
-                fs = 1/res*1000
-                f, t, Sxx = signal.spectrogram(x, fs, nfft= 10000,nperseg = N_parseg, noverlap=int(N_parseg/5))
-                
-                print(f'nparseg = {N_parseg}\tnoverlap={int(N_parseg/5)}')
-         
-                # Crea il grafico combinato
-                fig, ax1 = plt.subplots()
-
-                # Grafico del periodogramma
-                pcm = ax1.pcolormesh(t, f, np.log(Sxx), shading='gouraud')
-                ax1.set_ylim(10, 25)
-                plt.title(f'Sigmoid time constant = {1000/dd_par} [s]')
-                cbar = plt.colorbar(pcm, ax=ax1, location='left', aspect=20) 
-                ax1.set_ylabel(f'f [Hz]')
-                ax1.set_xlabel('t [s]')
-                cbar.set_label('Log Power')
-    
-                # Grafico della funzione
-                data[0] = data[0]/1000
-                data[1] = data[1]/1.083
-                ax2 = ax1.twinx()
-                ax2.plot(data[0], data[1], 'r-')
-                ax2.set_xlim(0.25, np.max(data[0]) - 0.5)
-                ax2.set_ylabel('Dopamine depletion', color='r')
-                ax2.tick_params(axis='y', labelcolor='red')
-
-                if save_img == '':
-                    plt.show()
-                else:
-                    plt.savefig(save_img, dpi = 500, facecolor='white')
-                    plt.close()
-
-                if pop_passed: break
-                else: pop = ''
         return [f, t, Sxx]
     
     
@@ -545,7 +470,7 @@ class SpikeSim:
         
     
         
-    def welch_spectogram(self, pop='', nparseg=1000, show=True, res=1., save_img='', Ns={}):
+    def welch_spectrogram(self, pop='', nparseg=1000, show=True, res=1., save_img='', Ns={}):
         '''Method computing the spectrogram resulting from the spiking activity of the passed subnetwork using the Welch method'''
         pop_passed = True
         if pop == '':
@@ -591,7 +516,7 @@ class SpikeSim:
         else:
             while True:
                 if pop == '':
-                    pop = input('welch_spectogram: enter subnetwork: ')
+                    pop = input('welch_spectrogram: enter subnetwork: ')
                     if pop.lower() == 'stop':
                         break
                     if not pop in self.subnets:
