@@ -322,13 +322,15 @@ class SpikeSim:
         x,_ = np.histogram(np.concatenate(self.data[pop]), bins = int((self.t_end-self.t_start)/res))
         fs = 1/res*1000
         f, t, Sxx = signal.spectrogram(x, fs, nfft= None,nperseg = N_parseg, noverlap=int(N_parseg/5)) #nfft va messo alto per fare venire bene lo spettrogramma però viene fatto molto velocemente se è None
+        
+        print(f'nparseg = {N_parseg}\tnoverlap={int(N_parseg/5)}')
+        
         plt.pcolormesh(t, f, Sxx, shading='gouraud')
-        plt.ylim(10, 25)
+        plt.ylim(8, 26)
         plt.colorbar()
         plt.title(pop)
         plt.ylabel(f'f [Hz]')
         plt.xlabel('t [s]')
-        print(f'nparseg = {N_parseg}\tnoverlap={int(N_parseg/5)}')
 
         if save_img == '':
             plt.show()
@@ -337,9 +339,10 @@ class SpikeSim:
             plt.close()
             
         return [f, t, Sxx]
+
     
     def periodogramdd(self, pop='', data='', dd_par=float('inf'), res=1., N_parseg=500, save_img=''):
-        '''Method computing the periodogram resulting from the (z-scored) spiking activity of the passed subnetwork
+        '''Method computing the periodogram resulting from the spiking activity of the passed subnetwork
         dopamine depletion condition is plotted
         
         :from data we get the dd function times and values
@@ -347,12 +350,10 @@ class SpikeSim:
         doesn't work for pop=all
         '''
 
-        data = np.loadtxt(data).T
-
         x,_ = np.histogram(np.concatenate(self.data[pop]), bins = int((self.t_end-self.t_start)/res))
         fs = 1/res*1000
-        f, t, Sxx = signal.spectrogram(x, fs, nfft= 10000,nperseg = N_parseg, noverlap=int(N_parseg/5))
-
+        f, t, Sxx = signal.spectrogram(x, fs, nfft= None,nperseg = N_parseg, noverlap=int(N_parseg/5)) #nfft va messo alto per fare venire bene lo spettrogramma però viene fatto molto velocemente se è None
+        
         print(f'nparseg = {N_parseg}\tnoverlap={int(N_parseg/5)}')
 
         # Crea il grafico combinato
@@ -360,24 +361,27 @@ class SpikeSim:
 
         # Grafico del periodogramma
         pcm = ax1.pcolormesh(t, f, np.log(Sxx), shading='gouraud')
-        ax1.set_ylim(10, 25)
+        ax1.set_ylim(8, 26)
         plt.title(f'Sigmoid time constant = {1000/dd_par} [s]')
-        cbar = plt.colorbar(pcm, ax=ax1, location='left', aspect=20) 
+        cbar = plt.colorbar(pcm, ax=ax1, aspect=20) 
         ax1.set_ylabel(f'f [Hz]')
         ax1.set_xlabel('t [s]')
         cbar.set_label('Log Power')
 
         # Grafico della funzione
-        data[0] = data[0]/1000
-        data[1] = data[1]/1.083
+        dd_data = data
+        dd_data[0] = dd_data[0]/1000
+        dd_data[1] = dd_data[1]/1.083
         ax2 = ax1.twinx()
-        ax2.plot(data[0], data[1], 'r-')
-        ax2.set_xlim(0.25, np.max(data[0]) - 0.5)
+        ax2.plot(dd_data[0], dd_data[1], 'r-')
+        ax2.set_xlim(0.25, np.max(dd_data[0]) - 0.5)
         ax2.set_ylabel('Dopamine depletion', color='r')
         ax2.tick_params(axis='y', labelcolor='red')
+        
+        plt.show()
 
         if save_img == '':
-            plt.show()
+            print('ciao')
         else:
             plt.savefig(save_img, dpi = 500, facecolor='white')
             plt.close()
@@ -397,9 +401,9 @@ class SpikeSim:
         
         # Ottieni l'indice del massimo della funzione
         max_index = np.argmax(sum1)
-        max_value = sum1[np.argmax(sum1)]
+        max_value = sum1[max_index]
         
-        Sxx_max_index = Sxx[np.argmax(sum1), :]
+        Sxx_max_index = Sxx[max_index, :]
         
         tau = np.quantile(Sxx_max_index,0.75)
         
