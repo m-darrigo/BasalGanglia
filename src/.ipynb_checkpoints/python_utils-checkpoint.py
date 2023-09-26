@@ -321,7 +321,7 @@ class SpikeSim:
 
         x,_ = np.histogram(np.concatenate(self.data[pop]), bins = int((self.t_end-self.t_start)/res))
         fs = 1/res*1000
-        f, t, Sxx = signal.spectrogram(x, fs, nfft= 10000,nperseg = N_parseg, noverlap=int(N_parseg/5))
+        f, t, Sxx = signal.spectrogram(x, fs, nfft= None,nperseg = N_parseg, noverlap=int(N_parseg/5)) #nfft va messo alto per fare venire bene lo spettrogramma però viene fatto molto velocemente se è None
         plt.pcolormesh(t, f, Sxx, shading='gouraud')
         plt.ylim(10, 25)
         plt.colorbar()
@@ -403,7 +403,7 @@ class SpikeSim:
         
         tau = np.quantile(Sxx_max_index,0.75)
         
-        # con integrale #######################################################
+        # con media #######################################################
         
         mask = (8 < f) & (f < 24)
         Sxx_lim = Sxx[mask,:]
