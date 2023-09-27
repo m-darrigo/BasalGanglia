@@ -977,7 +977,7 @@ double f_alpha(double t, double v_up) {
 double f_sigmoid(double t, double v_up) {
     double steepness, v_down, t_mid;
     t_mid = 100000;
-    steepness = 0.00004;
+    steepness = 0.00005;
     v_down = 0.85*1.083;
     
     return v_up + (v_down-v_up)* 1/( 1+ exp( -steepness*(t-t_mid) ) );

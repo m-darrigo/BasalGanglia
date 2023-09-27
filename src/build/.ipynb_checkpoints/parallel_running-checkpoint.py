@@ -20,7 +20,7 @@ gamma_s = [1.6]                   # controls intensity of loop1 whitout affectin
 par1 = [0.95]                     # input to D2
 
 
-par2 = ["sigmoid11"]            # cambia questo per differenziare: step, rectangular, alpha
+par2 = ["sigmoid12"]            # cambia questo per differenziare: step, rectangular, alpha
 
 # corrente oscillante in pA
 osc_amps = [0.] #pA
