@@ -8,7 +8,7 @@ import glob
 
 parallel_runs = 1 #6
 iterations = 1 #1
-end_time = 200000 #60500 #8500 # 60500 ms
+end_time = 12000 #60500 #8500 # 60500 ms
 
 ''' usiamo config2 come riferimento gamma agisce solo sui pesi D2 -> GPTI -> FSN -> D2, gamma1 e gamma2 li lasciamo per ora '''
 ''' niente popolazione ausiliarie -> no epsilon ed eta '''
@@ -20,7 +20,7 @@ gamma_s = [1.6]                   # controls intensity of loop1 whitout affectin
 par1 = [0.95]                     # input to D2
 
 
-par2 = ["sigmoid12"]            # cambia questo per differenziare: step, rectangular, alpha
+par2 = ["sigmoid5.0", "sigmoid5.1", "sigmoid5.2", "sigmoid5.3"]            # cambia questo per differenziare: step, rectangular, alpha
 
 # corrente oscillante in pA
 osc_amps = [0.] #pA

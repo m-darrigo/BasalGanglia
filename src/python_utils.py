@@ -321,7 +321,7 @@ class SpikeSim:
 
         x,_ = np.histogram(np.concatenate(self.data[pop]), bins = int((self.t_end-self.t_start)/res))
         fs = 1/res*1000
-        f, t, Sxx = signal.spectrogram(x, fs, nfft= None,nperseg = N_parseg, noverlap=int(N_parseg/5)) #nfft va messo alto per fare venire bene lo spettrogramma però viene fatto molto velocemente se è None
+        f, t, Sxx = signal.spectrogram(x, fs, nfft= 1000,nperseg = N_parseg, noverlap=int(N_parseg/5)) #nfft va messo alto per fare venire bene lo spettrogramma però viene fatto molto velocemente se è None
         
         print(f'nparseg = {N_parseg}\tnoverlap={int(N_parseg/5)}')
         
@@ -405,7 +405,7 @@ class SpikeSim:
         
         Sxx_max_index = Sxx[max_index, :]
         
-        tau = np.quantile(Sxx_max_index,0.75)
+        alpha = np.quantile(Sxx_max_index,0.75)
         
         # con media #######################################################
         
@@ -417,9 +417,9 @@ class SpikeSim:
             pow_t.append( np.mean(Sxx_lim[:, i]) )
 
         pow_t = np.array(pow_t)
-        tau1 = np.quantile(pow_t,0.75)
+        alpha1 = np.quantile(pow_t,0.75)
 
-        return tau, tau1
+        return alpha, alpha1
         
         
     def threshold_imgs(self, pop='', data='', dd_par=float('inf'), res=1., N_parseg=500, save_img=''):
@@ -465,9 +465,9 @@ class SpikeSim:
         plt.hist(Sxx_max_index)
         plt.show()
         
-        tau = np.quantile(Sxx_max_index,0.75)
+        alpha = np.quantile(Sxx_max_index,0.75)
         
-        return tau
+        return alpha
         
         
         
