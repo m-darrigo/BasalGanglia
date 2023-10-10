@@ -6,9 +6,9 @@ import time
 from datetime import datetime
 import glob
 
-parallel_runs = 1 #6
-iterations = 1 #1
-end_time = 12000 #60500 #8500 # 60500 ms
+parallel_runs = 30 #6
+iterations = 8 #1
+end_time = 23000 #60500 #8500 # 60500 ms
 
 ''' usiamo config2 come riferimento gamma agisce solo sui pesi D2 -> GPTI -> FSN -> D2, gamma1 e gamma2 li lasciamo per ora '''
 ''' niente popolazione ausiliarie -> no epsilon ed eta '''
@@ -17,10 +17,10 @@ gamma1_s = [1.]                   # controls connectivity within loop1  (loopB c
 gamma2_s = [1.]                   # controls connectivity within loop2  (loopA con stn)
 gamma_s = [1.6]                   # controls intensity of loop1 whitout affecting external currents
 
-par1 = [0.95]                     # input to D2
+par1 = [0.895, 0.9, 0.905, 0.91, 0.915, 0.92, 0.925, 0.93, 0.935, 0.94, 0.945, 0.95]                     # input to D2
 
 
-par2 = ["sigmoid5.0", "sigmoid5.1", "sigmoid5.2", "sigmoid5.3"]            # cambia questo per differenziare: step, rectangular, alpha
+par2 = ["flat"]            # cambia questo per differenziare: step, rectangular, alpha
 
 # corrente oscillante in pA
 osc_amps = [0.] #pA
@@ -52,7 +52,7 @@ for gamma1 in gamma1_s:
                         for osc_amp_p in osc_amps_poiss:
                             for pp1 in par1:
                                 for pp2 in par2:
-                                    save_dir = save_dir_+f'/{pp2}_{osc_amp_p:.2f}_{osc_freq_p:.4f}_{osc_amp:.2f}_{pp1:.2f}_{gamma1:.2f}_{gamma2:.2f}_{gamma}'
+                                    save_dir = save_dir_+f'/{pp2}_{osc_amp_p:.2f}_{osc_freq_p:.4f}_{osc_amp:.2f}_{pp1:.3f}_{gamma1:.2f}_{gamma2:.2f}_{gamma}'
                                     for it in range(iterations):
                                         if iterations == 1:
                                             save_name = save_dir+des
@@ -398,6 +398,6 @@ q.join()
 config_dirs = glob.glob('TEMP-*')
 if len(config_dirs) == parallel_runs:
     for d in config_dirs:
-        os.system('rm -r {d}')
+        os.system(f'rm -r {d}')
 else:
     print('ERROR: config dirs not deleted')

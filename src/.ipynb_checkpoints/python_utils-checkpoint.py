@@ -1,11 +1,13 @@
+# Import Python standard libraries
+import glob
+import re
+import pickle
+
 import numpy as np
 from scipy import stats
 from scipy import signal
-from scipy.optimize import curve_fit
-import glob
 import yaml
-import re
-import pickle
+
 
 import matplotlib
 matplotlib.use('TkAgg')
@@ -44,7 +46,7 @@ def readSpikes(file):
     with open(file) as in_file:
         for line in in_file.readlines():
             n_list = [float(i) for i in line.split()]
-            
+
             if len(l) <= round(n_list[0]):
                 l.extend( [ [] for i in range( (round(n_list[0]) - len(l) + 1) ) ] )
             l[round(n_list[0])].extend(n_list[1:])
@@ -59,13 +61,13 @@ def burst_sequence(sequenza):
     conteggi = []
     count = 1
     prev_element = sequenza[0]
-    
+
     #controlla se il primo elemento è 0 o 1
     if prev_element == 0:
         start_count = 0
     else:
         start_count = 1
-    
+
     #itera su sequenza a partire dal secondo elemento
     for element in sequenza[1:]:
         if element == prev_element:
@@ -74,44 +76,44 @@ def burst_sequence(sequenza):
             conteggi.append(count)
             count = 1
             prev_element = element
-    
+
     conteggi.append(count)
-    
+
     #se il primo elemento è 0 inserisci conteggio iniziale come 0
     if start_count == 0:
         conteggi.insert(0, 0)
-    
+
     count = 0
     burst = False
     index = 0
     blen = 0
     lunghezza = []
-    
+
     for element in conteggi[:]:
         if (index % 2) == 0:
             if element >= 5:
                 burst = True
-        
+
         if (index % 2) == 1:
             if element >= 5:
-                if burst == True:
+                if burst is True:
                     burst = False
-                    count += 1  
+                    count += 1
                     lunghezza.append(blen)
                     blen = 0
-                    
+
         index += 1
-        if burst == True:
+        if burst is True:
             blen = blen + element
     else:
-        if burst == True:
+        if burst is True:
             count += 1
             lunghezza.append(blen)
-            
+
     if count > 0:
         avarage = sum(lunghezza)/count
     else: avarage = 0
-    
+
     print('numero di burst, lunghezza di ogni burst, lunghezza media:', end=' ')
     return count, lunghezza, avarage
 
@@ -123,10 +125,12 @@ class SpikeSim:
     * dt: time resolution of the simulation
     * input_mode: external input mode:
 
-        - 0 (base mode): each neuron receives an indipendent poisson signal with mean frequency = SubNetwork::ext_in_rate
+        - 0 (base mode): each neuron receives an indipendent poisson signal 
+        with mean frequency = SubNetwork::ext_in_rate
         - 2 (paper mode): the input to the striatal population is correlated (ask for details)
     * rho_corr_paper (only with input_mode 2)
-    * data: dictionary with spike times corresponding to each population; data['pop'] is a list of np.arrays each containing the activity of a neuron
+    * data: dictionary with spike times corresponding to each population;
+    data['pop'] is a list of np.arrays each containing the activity of a neuron
     * subnets: a list of the SubNetworks in the simulation
     '''
 
@@ -157,9 +161,9 @@ class SpikeSim:
         self.input_mode = 0
         self.rho_corr_paper = -1
 
-        self.data = dict()
+        self.data = {}
         self.subnets = []
-        self.omegas = dict()
+        self.omegas = {}
 
         self.getParameterValues()
         self.loadData()
@@ -190,7 +194,7 @@ class SpikeSim:
 
         if self.input_mode != 0:
             paper_configfile = in_dict['input_mode_config']
-            if ( len(paper_configfile.split('/')) !=1 ):
+            if  len(paper_configfile.split('/')) !=1 :
                 paper_configfile = paper_configfile.split('/')[-1]
 
             with open(self.input_dir + '/'+paper_configfile) as file_paper:
@@ -229,7 +233,7 @@ class SpikeSim:
         print(f'\t t_end = {self.t_end} ms')
         print(f'\t dt = {self.dt} ms')
         print(f'\t input_mode = {self.input_mode}')
-        if (self.input_mode != 0):
+        if self.input_mode != 0:
             print(f'\t rho_corr = {self.rho_corr_paper}')
 
     def saveData(self, path):
@@ -321,15 +325,15 @@ class SpikeSim:
 
         x,_ = np.histogram(np.concatenate(self.data[pop]), bins = int((self.t_end-self.t_start)/res))
         fs = 1/res*1000
-        f, t, Sxx = signal.spectrogram(x, fs, nfft= 1000,nperseg = N_parseg, noverlap=int(N_parseg/5)) #nfft va messo alto per fare venire bene lo spettrogramma però viene fatto molto velocemente se è None
-        
+        f, t,sxx = signal.spectrogram(x, fs, nfft= 2000, nperseg = N_parseg, noverlap=int(N_parseg/5)) #nfft va messo alto per fare venire bene lo spettrogramma però viene fatto molto velocemente se è None
+
         print(f'nparseg = {N_parseg}\tnoverlap={int(N_parseg/5)}')
-        
-        plt.pcolormesh(t, f, Sxx, shading='gouraud')
+
+        plt.pcolormesh(t, f, sxx, shading='gouraud')
         plt.ylim(8, 26)
         plt.colorbar()
         plt.title(pop)
-        plt.ylabel(f'f [Hz]')
+        plt.ylabel('f [Hz]')
         plt.xlabel('t [s]')
 
         if save_img == '':
@@ -337,10 +341,10 @@ class SpikeSim:
         else:
             plt.savefig(save_img, dpi = 500, facecolor='white')
             plt.close()
-            
-        return [f, t, Sxx]
 
-    
+        return [f, t, sxx]
+
+
     def periodogramdd(self, pop='', data='', dd_par=float('inf'), res=1., N_parseg=500, save_img=''):
         '''Method computing the periodogram resulting from the spiking activity of the passed subnetwork
         dopamine depletion condition is plotted
@@ -352,32 +356,30 @@ class SpikeSim:
 
         x,_ = np.histogram(np.concatenate(self.data[pop]), bins = int((self.t_end-self.t_start)/res))
         fs = 1/res*1000
-        f, t, Sxx = signal.spectrogram(x, fs, nfft= None,nperseg = N_parseg, noverlap=int(N_parseg/5)) #nfft va messo alto per fare venire bene lo spettrogramma però viene fatto molto velocemente se è None
-        
+        f, t, sxx = signal.spectrogram(x, fs, nfft= 1000,nperseg = N_parseg, noverlap=int(N_parseg/5)) #nfft va messo alto per fare venire bene lo spettrogramma però viene fatto molto velocemente se è None
+
         print(f'nparseg = {N_parseg}\tnoverlap={int(N_parseg/5)}')
 
         # Crea il grafico combinato
-        fig, ax1 = plt.subplots()
+        _, ax1 = plt.subplots()
 
         # Grafico del periodogramma
-        pcm = ax1.pcolormesh(t, f, np.log(Sxx), shading='gouraud')
+        pcm = ax1.pcolormesh(t, f, np.log(sxx), shading='gouraud')
         ax1.set_ylim(8, 26)
         plt.title(f'Sigmoid time constant = {1000/dd_par} [s]')
-        cbar = plt.colorbar(pcm, ax=ax1, aspect=20) 
-        ax1.set_ylabel(f'f [Hz]')
+        plt.colorbar(pcm, ax=ax1, aspect=20).set_label('Log Power')
+        ax1.set_ylabel('f [Hz]')
         ax1.set_xlabel('t [s]')
-        cbar.set_label('Log Power')
 
         # Grafico della funzione
-        dd_data = data
-        dd_data[0] = dd_data[0]/1000
-        dd_data[1] = dd_data[1]/1.083
+        data[0] = data[0]/1000
+        data[1] = data[1]/1.083
         ax2 = ax1.twinx()
-        ax2.plot(dd_data[0], dd_data[1], 'r-')
-        ax2.set_xlim(0.25, np.max(dd_data[0]) - 0.5)
+        ax2.plot(data[0], data[1], 'r-')
+        ax2.set_xlim(0.25, np.max(data[0]) - 0.5)
         ax2.set_ylabel('Dopamine depletion', color='r')
         ax2.tick_params(axis='y', labelcolor='red')
-        
+
         plt.show()
 
         if save_img == '':
@@ -386,59 +388,56 @@ class SpikeSim:
             plt.savefig(save_img, dpi = 500, facecolor='white')
             plt.close()
 
-        return [f, t, Sxx]
-    
-    
-    def threshold(self, pop='', data='', dd_par=float('inf'), res=1., N_parseg=500, save_img=''):
-       
-        output=self.periodogram(pop=pop, res=1., N_parseg=N_parseg, save_img=save_img)
-        f = output[0]
-        t = output[1]
-        Sxx = output[2]
-        
+        return [f, t, sxx]
+
+
+    def threshold(self, pop='', N_parseg=500, save_img=''):
+        '''Method computing the threshold value that defines the presence of a burst
+        '''
+
+        f, t, sxx =self.periodogram(pop=pop, res=1., N_parseg=N_parseg, save_img=save_img)
+
         # faccio somma nel tempo per trovare frequenza max #######################################################
-        sum1 = np.sum(Sxx, axis=1) #somma per tutte frequenze
-        
+        sum1 = np.sum(sxx, axis=1) #somma per tutte frequenze
+
         # Ottieni l'indice del massimo della funzione
         max_index = np.argmax(sum1)
-        max_value = sum1[max_index]
-        
-        Sxx_max_index = Sxx[max_index, :]
-        
-        alpha = np.quantile(Sxx_max_index,0.75)
-        
+
+        sxx_max_index = sxx[max_index, :]
+
+        alpha = np.quantile(sxx_max_index,0.75)
+
         # con media #######################################################
-        
+
         mask = (8 < f) & (f < 24)
-        Sxx_lim = Sxx[mask,:]
-        
+        sxx_lim = sxx[mask,:]
+
         pow_t = []
         for i in range(len(t)):
-            pow_t.append( np.mean(Sxx_lim[:, i]) )
+            pow_t.append( np.mean(sxx_lim[:, i]) )
 
         pow_t = np.array(pow_t)
         alpha1 = np.quantile(pow_t,0.75)
 
         return alpha, alpha1
-        
-        
-    def threshold_imgs(self, pop='', data='', dd_par=float('inf'), res=1., N_parseg=500, save_img=''):
-       
-        output=self.periodogram(pop=pop, res=1., N_parseg=N_parseg, save_img=save_img)
-        f = output[0]
-        t = output[1]
-        Sxx = output[2]
-        
+
+
+    def threshold_imgs(self, pop='', N_parseg=500, save_img=''):
+        '''Method computing the threshold value that defines the presence of a burst with picture
+        '''
+
+        f, t, sxx =self.periodogram(pop=pop, res=1., N_parseg=N_parseg, save_img=save_img)
+
         # faccio somma nel tempo per trovare frequenza max #######################################################
-        sum1 = np.sum(Sxx, axis=1) #somma per tutte frequenze
-        
+        sum1 = np.sum(sxx, axis=1) #somma per tutte frequenze
+
         # Ottieni l'indice del massimo della funzione
         max_index = np.argmax(sum1)
         max_value = sum1[np.argmax(sum1)]
         print('Indice del massimo:', max_index)
         print('valore del massimo:', max_value)
-        
-        
+
+
         plt.figure()
         plt.plot(f, sum1)
         plt.xlabel('f [Hz]')
@@ -451,34 +450,28 @@ class SpikeSim:
         # Aggiungi un punto sul massimo
         plt.scatter(max_index, max_value, color='blue', marker='o')
         plt.show()
-        
+
         # 2Estrarre la colonna corrispondente all'indice max_index
-        Sxx_max_index = Sxx[np.argmax(sum1), :]
+        sxx_max_index = sxx[np.argmax(sum1), :]
 
         # Creare un grafico dei valori nel tempo
-        plt.plot(t, Sxx_max_index)
+        plt.plot(t, sxx_max_index)
         plt.xlabel('Tempo')
         plt.ylabel('Valori')
         plt.title(f'Valori nel tempo per {max_index} Hz')
         plt.show()
-        
-        plt.hist(Sxx_max_index)
+
+        plt.hist(sxx_max_index)
         plt.show()
-        
-        alpha = np.quantile(Sxx_max_index,0.75)
-        
+
+        alpha = np.quantile(sxx_max_index,0.75)
+
         return alpha
-        
-        
-        
-        
-    
-        
+
+
+
     def welch_spectrogram(self, pop='', nparseg=1000, show=True, res=1., save_img='', Ns={}):
         '''Method computing the spectrogram resulting from the spiking activity of the passed subnetwork using the Welch method'''
-        pop_passed = True
-        if pop == '':
-            pop_passed = False
 
         if pop.lower() == 'all':
 
@@ -486,7 +479,7 @@ class SpikeSim:
             cols = 1 if l==1 else 2
             rows = round(l/cols) if (l%2==0 or l==1) else int(l/cols)+1
 
-            to_ret = dict()
+            to_ret = {}
             if show:
                 plt.figure()
             for i,p in enumerate(sorted(self.subnets)):
@@ -504,7 +497,7 @@ class SpikeSim:
                     if show:
                         plt.subplot(rows,cols, i+1)
                         plt.plot(f, pow_welch_spect)
-                        plt.xlabel(f'f [Hz]')
+                        plt.xlabel('f [Hz]')
                         plt.ylabel(f'PSD {p} [u.a.]')
                         plt.xlim(0, 120)
                         # plt.yscale('log')
@@ -536,7 +529,7 @@ class SpikeSim:
                 f, pow_welch_spect = signal.welch(x, fs, nperseg=nparseg, noverlap=int(nparseg/5), nfft=max(30000,nparseg), scaling='density')
                 if show or save_img!='' :
                     plt.plot(f, pow_welch_spect)
-                    plt.xlabel(f'f [Hz]')
+                    plt.xlabel('f [Hz]')
                     plt.ylabel(f'PSD {pop}')
                     # plt.ylim(0, 120)
                     # plt.yscale('log')
@@ -555,16 +548,10 @@ class SpikeSim:
                     plt.savefig(save_img, dpi = 500)
                     plt.close()
 
-                if pop_passed: return f, {pop: pow_welch_spect}
-                else: pop = ''
+                return f, {pop: pow_welch_spect}
 
     def activityDistribution(self, pop = '', save_img=''):
         '''Method computing the distribution of the number of spike of each neuron in the subnetworks'''
-
-        pop_passed = True
-        if pop == '':
-            pop_passed = False
-
 
         if pop.lower() == 'all':
             plt.figure()
@@ -600,63 +587,44 @@ class SpikeSim:
                     plt.savefig(save_img, dpi = 500)
                     plt.close()
 
-                if pop_passed: break
-                else: pop = ''
+                break
+
 
     @staticmethod
-    def crossCorr(x, y, L, rescale=True):
-        '''Method computing the cross correlation between two vectors mediated over subvectors of len L
+    def crossCorr(x, y, l, rescale=True):
+        '''Method computing the cross correlation between two vectors mediated over subvectors of len l
         Notes:
-        * L must be even and less than len(x)/2
+        * l must be even and less than len(x)/2
         * the two vector must be of the same lenght
         * if rescale is True (default) each subvector is zscored before calculating the cross correlation; otherways only the mean is subtracted to the data
         '''
 
         print('using decorator')
 
-        if L%2 == 1:
-            print('ERROR: not even L passed to cross_corr...')
+        if l%2 == 1:
+            print('ERROR: not even l passed to cross_corr...')
             exit()
         if len(x) != len(y):
             print(f'ERROR: not same lenght arrays passed to cross_corr... {len(x)} vs {len(y)}')
             exit()
-        M = int(len(x)/L)-1
-        print(f'convolution calculated with {M} blocks of size {L}')
-        c = np.zeros(L)
-        for i in range(M):
-            start = i*L+int(L/2)                    # start of x
-            end = (i+1)*L+int(L/2)                  # end of x
+        m = int(len(x)/l)-1
+        print(f'convolution calculated with {m} blocks of size {l}')
+        c = np.zeros(l)
+        for i in range(m):
+            start = i*l+int(l/2)                    # start of x
+            end = (i+1)*l+int(l/2)                  # end of x
             if rescale:
-                tmp_y = stats.zscore(y[start-int(L/2):end+int(L/2)])
-                tmp_x = stats.zscore(x[start-int(L/2):end+int(L/2)])
+                tmp_y = stats.zscore(y[start-int(l/2):end+int(l/2)])
+                tmp_x = stats.zscore(x[start-int(l/2):end+int(l/2)])
             else:
-                tmp_y = y[start-int(L/2):end+int(L/2)] - y[start-int(L/2):end+int(L/2)].mean()
-                tmp_x = x[start-int(L/2):end+int(L/2)] - x[start-int(L/2):end+int(L/2)].mean()
-            tmp_x = tmp_x[int(L/2):L+int(L/2)]
-            for k in range(L):
-                c[k] += ( tmp_x * tmp_y[k:L+k] ).sum()
+                tmp_y = y[start-int(l/2):end+int(l/2)] - y[start-int(l/2):end+int(l/2)].mean()
+                tmp_x = x[start-int(l/2):end+int(l/2)] - x[start-int(l/2):end+int(l/2)].mean()
+            tmp_x = tmp_x[int(l/2):l+int(l/2)]
+            for k in range(l):
+                c[k] += ( tmp_x * tmp_y[k:l+k] ).sum()
 
-            # plt.plot(np.arange(-int(L/2), int(L/2), 1), np.array(c/(M*L/2)))
+            # plt.plot(np.arange(-int(l/2), int(l/2), 1), np.array(c/(M*l/2)))
             # plt.plot(np.arange(len(tmp_x)), tmp_x)
             # plt.plot(np.arange(len(tmp_y)), tmp_y)
             # plt.show()
-        return (np.arange(-int(L/2), int(L/2), 1), np.array(c/(M*L/2)))
-
-    def getAmp(self, x, L, res, omega):
-
-        def f(t, A):
-            return A*np.cos(omega*t*res)
-
-        cc, corr = self.crossCorr(x,x,L, False)
-        corr[np.argmax(corr)] = corr[np.argmax(corr[:int(L/2)-2])]
-
-        pars,covm=curve_fit(f,cc,corr,[1])
-
-        plt.plot(cc, corr)
-        plt.plot(cc, f(cc, pars[0]))
-        plt.title(self.input_dir)
-        plt.show()
-
-        return pars[0], np.sqrt(covm[0][0])
-        
-
+        return (np.arange(-int(l/2), int(l/2), 1), np.array(c/(m*l/2)))

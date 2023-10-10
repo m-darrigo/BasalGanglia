@@ -996,7 +996,7 @@ void Network::externalInputUpdate() {
         for (auto k=subnets.begin(); k!=subnets.end(); k++) {
             ext_rate = k->ext_in_rate;
             if (k->name == "D2") { 
-                string shape = "sigmoid";//                      //choose shape
+                string shape = "flat";//                      //choose shape
                 
                 if (shape == "rectangular") {
                     ext_rate = f_rectangular(t, k->ext_in_rate);
