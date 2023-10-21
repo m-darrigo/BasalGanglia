@@ -325,9 +325,10 @@ class SpikeSim:
 
         x,_ = np.histogram(np.concatenate(self.data[pop]), bins = int((self.t_end-self.t_start)/res))
         fs = 1/res*1000
-        f, t,sxx = signal.spectrogram(x, fs, nfft= 2000, nperseg = N_parseg, noverlap=int(N_parseg/5)) #nfft va messo alto per fare venire bene lo spettrogramma però viene fatto molto velocemente se è None
+        noverlap=int(N_parseg*0.8) #indica la frazione di dati che si vanno a sovrapporre nelle finestre che scorrono
+        f, t,sxx = signal.spectrogram(x, fs, nfft= 2000, nperseg = N_parseg, noverlap=noverlap) #nfft va messo alto per fare venire bene lo spettrogramma però viene fatto molto velocemente se è None
 
-        print(f'nparseg = {N_parseg}\tnoverlap={int(N_parseg/5)}')
+        print(f'nparseg = {N_parseg}\tnoverlap={noverlap}')
 
         plt.pcolormesh(t, f, sxx, shading='gouraud')
         plt.ylim(8, 26)
@@ -356,9 +357,10 @@ class SpikeSim:
 
         x,_ = np.histogram(np.concatenate(self.data[pop]), bins = int((self.t_end-self.t_start)/res))
         fs = 1/res*1000
-        f, t, sxx = signal.spectrogram(x, fs, nfft= 1000,nperseg = N_parseg, noverlap=int(N_parseg/5)) #nfft va messo alto per fare venire bene lo spettrogramma però viene fatto molto velocemente se è None
+        noverlap=int(N_parseg*0.8) #indica la frazione di dati che si vanno a sovrapporre nelle finestre che scorrono
+        f, t, sxx = signal.spectrogram(x, fs, nfft= 1000,nperseg = N_parseg, noverlap=noverlap) #nfft va messo alto per fare venire bene lo spettrogramma però viene fatto molto velocemente se è None
 
-        print(f'nparseg = {N_parseg}\tnoverlap={int(N_parseg/5)}')
+        print(f'nparseg = {N_parseg}\tnoverlap={noverlap}')
 
         # Crea il grafico combinato
         _, ax1 = plt.subplots()

@@ -976,8 +976,8 @@ double f_alpha(double t, double v_up) {
 
 double f_sigmoid(double t, double v_up) {
     double steepness, v_down, t_mid;
-    t_mid = 6000;
-    steepness = 0.0013;
+    t_mid = 90000;
+    steepness = 0.00005;
     v_down = 0.85*1.083;
     
     return v_up + (v_down-v_up)* 1/( 1+ exp( -steepness*(t-t_mid) ) );
@@ -996,7 +996,7 @@ void Network::externalInputUpdate() {
         for (auto k=subnets.begin(); k!=subnets.end(); k++) {
             ext_rate = k->ext_in_rate;
             if (k->name == "D2") { 
-                string shape = "flat";//                      //choose shape
+                string shape = "sigmoid";//                      //choose shape
                 
                 if (shape == "rectangular") {
                     ext_rate = f_rectangular(t, k->ext_in_rate);
