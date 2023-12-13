@@ -297,7 +297,7 @@ public:
     void evolve(double _T);
 
     /// Method updating external input according to #input_mode
-    void externalInputUpdate();
+    void externalInputUpdate(double mean_rate, double rate_variation);
 
     /// Function whose solutions==0 needs to be find in case of oscillatory external input rate
     double input_func(double y_, double r0_, double A_, double omega_, double t0_, double t_);

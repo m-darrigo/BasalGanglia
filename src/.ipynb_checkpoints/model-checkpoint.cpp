@@ -976,48 +976,93 @@ double f_alpha(double t, double v_up) {
 
 double f_sigmoid(double t, double v_up) {
     double steepness, v_down, t_mid;
-    t_mid = 90000;
-    steepness = 0.00005;
+    t_mid = 20000;
+    steepness = 0.0005;
     v_down = 0.85*1.083;
     
     return v_up + (v_down-v_up)* 1/( 1+ exp( -steepness*(t-t_mid) ) );
 }
 
-double f_flat(double t, double v_up) {
+double f_reversesigmoid(double t, double v_up) {
+    double steepness, v_down, t_mid;
+    t_mid = 13000;
+    steepness = 0.002;
+    v_down = 0.85*1.083;
+    
+    return v_down + (v_up-v_down)* 1/( 1+ exp( -steepness*(t-t_mid) ) );
+}
+
+double f_sigmoidpulse(double t, double v_up) {
+    double steepness, v_down, t_mid1, t_mid2;
+    t_mid1 = 13000;
+    t_mid2 = 23000;
+    steepness = 0.002;
+    v_down = 0.85*1.083;
+    
+    return v_up + (v_down-v_up)* 1/( 1+ exp( -steepness*(t-t_mid1) ) ) + (v_up-v_down)* 1/( 1+ exp( -steepness*(t-t_mid2) ) );
+}
+
+double f_flat(double v_up) {
     
     return v_up;
 }
 
+double f_sigmoidpulse1(double t, double v_up, double mean_rate, double rate_variation) {
+    double steepness, v_down, t_mid1, t_mid2;
+    t_mid1 = 13000;
+    t_mid2 = 23000;
+    steepness = 0.002;
+    v_down = 0.85 * 1.083;
 
-void Network::externalInputUpdate() {
+    // Introduce variability in the rate
+    double current_rate = mean_rate + rate_variation * sin(2 * M_PI * 0.0001 * t);
+
+    return v_up + (v_down - v_up) * 1 / (1 + exp(-steepness * (t - t_mid1))) +
+           (v_up - v_down) * 1 / (1 + exp(-steepness * (t - t_mid2))) + (g.getRandomUniform() < current_rate);
+}
+
+
+void Network::externalInputUpdate(double mean_rate, double rate_variation) {
 
     double           tmp_sum, tmp_end, tbar, tmp_y, ext_rate;
     if (input_mode == 0) {        // base mode
         for (auto k=subnets.begin(); k!=subnets.end(); k++) {
             ext_rate = k->ext_in_rate;
             if (k->name == "D2") { 
-                string shape = "sigmoid";//                      //choose shape
-                
+                string shape = "sigmoidpulse1";//                      //choose shape
+
                 if (shape == "rectangular") {
                     ext_rate = f_rectangular(t, k->ext_in_rate);
                 }
-                
+
                 if (shape == "step") {
                     ext_rate = f_step(t, k->ext_in_rate);
                 }
-                
+
                 if (shape == "alpha") {
                     ext_rate = f_alpha(t, k->ext_in_rate);
                 }
-                
+
+                if (shape == "reversesigmoid") {
+                    ext_rate = f_reversesigmoid(t, k->ext_in_rate);
+                }
+
                 if (shape == "sigmoid") {
                     ext_rate = f_sigmoid(t, k->ext_in_rate);
                 }
-                
-                if (shape == "flat") {
-                    ext_rate = f_flat(t, k->ext_in_rate);
+
+                if (shape == "sigmoidpulse") {
+                    ext_rate = f_sigmoidpulse(t, k->ext_in_rate);
                 }
-                
+
+                if (shape == "sigmoidpulse1") {
+                    ext_rate = f_sigmoidpulse1(t, k->ext_in_rate, mean_rate, rate_variation);
+                }
+
+                if (shape == "flat") {
+                    ext_rate = f_flat(k->ext_in_rate);
+                }
+
                 ofstream      f((out_dir+"/ext_rateD2.txt").c_str(), ios::app  );
                 f << t << "\t" << ext_rate << endl; 
             }// choose D2

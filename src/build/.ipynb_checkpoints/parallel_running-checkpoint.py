@@ -6,9 +6,9 @@ import time
 from datetime import datetime
 import glob
 
-parallel_runs = 8 #6
-iterations = 8 #1
-end_time = 180000 #60500 #8500 # 60500 ms
+parallel_runs = 32 #6
+iterations = 32 #1
+end_time = 33000 #60500 #8500 # 60500 ms
 
 ''' usiamo config2 come riferimento gamma agisce solo sui pesi D2 -> GPTI -> FSN -> D2, gamma1 e gamma2 li lasciamo per ora '''
 ''' niente popolazione ausiliarie -> no epsilon ed eta '''
@@ -17,10 +17,10 @@ gamma1_s = [1.]                   # controls connectivity within loop1  (loopB c
 gamma2_s = [1.]                   # controls connectivity within loop2  (loopA con stn)
 gamma_s = [1.6]                   # controls intensity of loop1 whitout affecting external currents
 
-par1 = [0.95]                     # input to D2
+par1 = [0.950]                     # input to D2
 
 
-par2 = ["sigmoid0_00005"]            # cambia questo per differenziare: step, rectangular, alpha
+par2 = ["sigmoidpulse0_002"]            # cambia questo per differenziare: step, rectangular, alpha
 
 # corrente oscillante in pA
 osc_amps = [0.] #pA

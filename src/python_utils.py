@@ -320,24 +320,23 @@ class SpikeSim:
 
         return {self.subnets[i] : [ MAct[i], Ns[i], MActPerN[i] ] for i in range(len(self.subnets))}
 
-    def periodogram(self, pop='', res=1., N_parseg=500, save_img=''):
+    def periodogram(self, pop='', res=1., N_parseg=1000, save_img=''):
         '''Method computing the periodogram resulting from the spiking activity of the passed subnetwork'''
 
         x,_ = np.histogram(np.concatenate(self.data[pop]), bins = int((self.t_end-self.t_start)/res))
         fs = 1/res*1000
-        noverlap=int(N_parseg*0.8) #indica la frazione di dati che si vanno a sovrapporre nelle finestre che scorrono
+        noverlap=int(N_parseg*0.5) #indica la frazione di dati che si vanno a sovrapporre nelle finestre che scorrono
         f, t,sxx = signal.spectrogram(x, fs, nfft= 2000, nperseg = N_parseg, noverlap=noverlap) #nfft va messo alto per fare venire bene lo spettrogramma però viene fatto molto velocemente se è None
 
         print(f'nparseg = {N_parseg}\tnoverlap={noverlap}')
 
-        plt.pcolormesh(t, f, sxx, shading='gouraud')
-        plt.ylim(8, 26)
-        plt.colorbar()
-        plt.title(pop)
-        plt.ylabel('f [Hz]')
-        plt.xlabel('t [s]')
-
         if save_img == '':
+            plt.pcolormesh(t, f, sxx, shading='gouraud')
+            plt.ylim(8, 26)
+            plt.colorbar()
+            plt.title(pop)
+            plt.ylabel('f [Hz]')
+            plt.xlabel('t [s]')
             plt.show()
         else:
             plt.savefig(save_img, dpi = 500, facecolor='white')
