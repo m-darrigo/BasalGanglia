@@ -501,12 +501,31 @@ void Network::createPops() {
     } // end for over subnets
 }
 
+//double Network::input_func(double y_, double r0_, double A_, double omega_, double t0_, double t_) {
+//    return t_ - t0_ + A_/omega_ * (cos(omega_*t0_) - cos(omega_*t_)) - y_/r0_;
+//}
+
+// PER SCEGLIERE LA FUNZIONE BISOGNA COMMENTARE LE ALTRE: QUI: A_ = t_mid,  omega_ = sigm_par, r0_ è 0.85, 0,1*1.083 è (0.95-0.85)*1.083 
+
 double Network::input_func(double y_, double r0_, double A_, double omega_, double t0_, double t_) {
-    return t_ - t0_ + A_/omega_ * (cos(omega_*t0_) - cos(omega_*t_)) - y_/r0_;
+
+    // SIGMOID penso sia corretto questo
+    // return (r0_ + 0.1*1.083)*(t_ - t0_) + 0.1*1.083/omega_ * log((exp(A_ * omega_) + exp(omega_*t0_))/((exp(A_ * omega_) + exp(omega_*t_)))) - y_;
+
+    // REVERSESIGMOID
+    // return (r0_ + 0.1*1.083)*(t_ - t0_) - 0.1*1.083/omega_ * log((exp(A_ * omega_) + exp(omega_*t0_))/((exp(A_ * omega_) + exp(omega_*t_)))) - y_;
+
+    //SIGMOIDPULSE
+    return (r0_ + 0.1*1.083)*(t_ - t0_) + 0.1*1.083/omega_ * log((exp(A_ * omega_) + exp(omega_*t0_))/((exp(A_ * omega_) + exp(omega_*t_)))) - 0.1*1.083/omega_ * log((exp((A_+10000) * omega_) + exp(omega_*t0_))/((exp((A_+10000) * omega_) + exp(omega_*t_)))) - y_;
+
+    //FLAT
+    //return (A_) * (t_ - t0_);
 }
+
 
 double Network::find_sol_bisection(double y_, double r0_, double A_, double omega_, double t0_) {
     double          tD = t0_, tU = t0_+1./r0_, val = 1e10, ftD, ftU, tbar;
+
     ftD = input_func(y_,r0_,A_,omega_,t0_,tD);
     ftU = input_func(y_,r0_,A_,omega_,t0_,tU);
 
@@ -965,9 +984,9 @@ double f_alpha(double t, double v_up) {
     a = 30*2.1;
     b = 40*1.2;
     c = 1;
-    
+
     v_down = v_up - c * (exp(-(t - t_start)/a) - exp(-(t - t_start)/b));
-    
+
     if (t < t_start) {
         return v_up;
     }
@@ -976,8 +995,8 @@ double f_alpha(double t, double v_up) {
 
 double f_sigmoid(double t, double v_up) {
     double steepness, v_down, t_mid;
-    t_mid = 20000;
-    steepness = 0.0005;
+    t_mid = 8000;
+    steepness = 0.01;
     v_down = 0.85*1.083;
     
     return v_up + (v_down-v_up)* 1/( 1+ exp( -steepness*(t-t_mid) ) );
@@ -994,9 +1013,9 @@ double f_reversesigmoid(double t, double v_up) {
 
 double f_sigmoidpulse(double t, double v_up) {
     double steepness, v_down, t_mid1, t_mid2;
-    t_mid1 = 13000;
-    t_mid2 = 23000;
-    steepness = 0.002;
+    t_mid1 = 23000;
+    t_mid2 = 53000;
+    steepness = 0.0005;
     v_down = 0.85*1.083;
     
     return v_up + (v_down-v_up)* 1/( 1+ exp( -steepness*(t-t_mid1) ) ) + (v_up-v_down)* 1/( 1+ exp( -steepness*(t-t_mid2) ) );
@@ -1007,29 +1026,15 @@ double f_flat(double v_up) {
     return v_up;
 }
 
-double f_sigmoidpulse1(double t, double v_up, double mean_rate, double rate_variation) {
-    double steepness, v_down, t_mid1, t_mid2;
-    t_mid1 = 13000;
-    t_mid2 = 23000;
-    steepness = 0.002;
-    v_down = 0.85 * 1.083;
 
-    // Introduce variability in the rate
-    double current_rate = mean_rate + rate_variation * sin(2 * M_PI * 0.0001 * t);
-
-    return v_up + (v_down - v_up) * 1 / (1 + exp(-steepness * (t - t_mid1))) +
-           (v_up - v_down) * 1 / (1 + exp(-steepness * (t - t_mid2))) + (g.getRandomUniform() < current_rate);
-}
-
-
-void Network::externalInputUpdate(double mean_rate, double rate_variation) {
+void Network::externalInputUpdate() {
 
     double           tmp_sum, tmp_end, tbar, tmp_y, ext_rate;
     if (input_mode == 0) {        // base mode
         for (auto k=subnets.begin(); k!=subnets.end(); k++) {
             ext_rate = k->ext_in_rate;
             if (k->name == "D2") { 
-                string shape = "sigmoidpulse1";//                      //choose shape
+                string shape = ""; //choose shape
 
                 if (shape == "rectangular") {
                     ext_rate = f_rectangular(t, k->ext_in_rate);
@@ -1055,13 +1060,13 @@ void Network::externalInputUpdate(double mean_rate, double rate_variation) {
                     ext_rate = f_sigmoidpulse(t, k->ext_in_rate);
                 }
 
-                if (shape == "sigmoidpulse1") {
-                    ext_rate = f_sigmoidpulse1(t, k->ext_in_rate, mean_rate, rate_variation);
-                }
-
                 if (shape == "flat") {
                     ext_rate = f_flat(k->ext_in_rate);
                 }
+
+                if (shape == "") {}
+                
+                
 
                 ofstream      f((out_dir+"/ext_rateD2.txt").c_str(), ios::app  );
                 f << t << "\t" << ext_rate << endl; 
@@ -1081,16 +1086,16 @@ void Network::externalInputUpdate(double mean_rate, double rate_variation) {
                         }
                     }
                     else {
-                        // ofstream        of("prova_osc_inp.txt", ios::app);
+                        //ofstream        of(out_dir+"/prova_sigm_inp.txt", ios::app); //commented
                         tbar = tmp_end;
                         while (tmp_sum < dt) {
                             tmp_y = - log(g.getRandomUniform());
-                            tbar = find_sol_bisection( tmp_y, ext_rate, k->osc_amp_poiss, k->osc_omega_poiss, tbar );
+                            tbar = find_sol_bisection( tmp_y, 0.85*1.083, k->osc_amp_poiss, k->osc_omega_poiss, tbar ); //0.85*1.083 era k->ext_in_rate
                             (k->pop)[i].input_t_ex["ext"].push_back(tbar);
                             tmp_sum = tbar - tmp_end;
-                            // of << tbar << endl;
+                            //of << tbar << endl; //commented
                         }
-                        // of.close();
+                        //of.close(); //commented
                     }
                 }
             } // end for over neurons

@@ -28,9 +28,9 @@ osc_freqs = [0.] #omega
 osc_to = set([]) # set(['D2'])
 
 # input poisson
-osc_amps_poiss = [0.]
-osc_freqs_poiss = [0.] # frequences in kHz!!
-osc_to_poiss = set([])
+osc_amps_poiss = [13000] # amps = t_mid
+osc_freqs_poiss = [0.002] # freqs = sigm_par
+osc_to_poiss = set(['D2'])
 # external_input_update in network class in model cpp, file out stream to save
 
 save_dir_ = 'output/n1'
@@ -52,7 +52,7 @@ for gamma1 in gamma1_s:
                         for osc_amp_p in osc_amps_poiss:
                             for pp1 in par1:
                                 for pp2 in par2:
-                                    save_dir = save_dir_+f'/{pp2}_{osc_amp_p:.2f}_{osc_freq_p:.4f}_{osc_amp:.2f}_{pp1:.3f}_{gamma1:.2f}_{gamma2:.2f}_{gamma}'
+                                    save_dir = save_dir_+f'/{pp2}_{osc_amp_p:.2f}_{osc_freq_p:.5f}_{osc_amp:.2f}_{pp1:.3f}_{gamma1:.2f}_{gamma2:.2f}_{gamma}'
                                     for it in range(iterations):
                                         if iterations == 1:
                                             save_name = save_dir+des
@@ -91,7 +91,7 @@ osc_freq:                       {osc_freq}
   dev_ext_weight:         0.05
   ext_in_rate:            {1.6*0.7}                         # !!modified!!
   osc_amp_poiss:          {osc_amp_p if 'D1' in osc_to_poiss else 0.}
-  osc_omega_poiss:        {osc_freq_p*2*np.pi}
+  osc_omega_poiss:        {osc_freq_p if 'D1' in osc_to_poiss else 0.}
   tau_syn_ex:             12.
   tau_syn_in:             10.
   k_aqif_cond_exp:        1.
@@ -118,7 +118,7 @@ osc_freq:                       {osc_freq}
   dev_ext_weight:         0.05
   ext_in_rate:            {1.083*pp1}                        # !!par1!!
   osc_amp_poiss:          {osc_amp_p if 'D2' in osc_to_poiss else 0.}
-  osc_omega_poiss:        {osc_freq_p*2*np.pi}
+  osc_omega_poiss:        {osc_freq_p if 'D2' in osc_to_poiss else 0.}
   tau_syn_ex:             12.
   tau_syn_in:             10.
   a_adaptive:             -20
@@ -143,7 +143,7 @@ osc_freq:                       {osc_freq}
   dev_ext_weight:         0.05
   ext_in_rate:            {0.787*1.2}                        # !!modified!!
   osc_amp_poiss:          {osc_amp_p if 'FSN' in osc_to_poiss else 0.}
-  osc_omega_poiss:        {osc_freq_p*2*np.pi}
+  osc_omega_poiss:        {osc_freq_p if 'FSN' in osc_to_poiss else 0.}
   tau_syn_ex:             12.
   tau_syn_in:             10.
   k_aqif_cond_exp:        1.
@@ -170,7 +170,7 @@ osc_freq:                       {osc_freq}
   dev_ext_weight:         0.05
   ext_in_rate:            1.53
   osc_amp_poiss:          {osc_amp_p if 'GPTI' in osc_to_poiss else 0.}
-  osc_omega_poiss:        {osc_freq_p*2*np.pi}
+  osc_omega_poiss:        {osc_freq_p if 'GPTI' in osc_to_poiss else 0.}
   tau_syn_ex:             10.
   tau_syn_in:             5.5
   a_adaptive:             2.5
@@ -196,7 +196,7 @@ osc_freq:                       {osc_freq}
   dev_ext_weight:         0.05
   ext_in_rate:            0.17
   osc_amp_poiss:          {osc_amp_p if 'GPTA' in osc_to_poiss else 0.}
-  osc_omega_poiss:        {osc_freq_p*2*np.pi}
+  osc_omega_poiss:        {osc_freq_p if 'GPTA' in osc_to_poiss else 0.}
   tau_syn_ex:             10.
   tau_syn_in:             5.5
   a_adaptive:             2.5
@@ -222,7 +222,7 @@ osc_freq:                       {osc_freq}
   dev_ext_weight:         0.05
   ext_in_rate:            0.5 # 0.25 x2
   osc_amp_poiss:          {osc_amp_p if 'STN' in osc_to_poiss else 0.}
-  osc_omega_poiss:        {osc_freq_p*2*np.pi}
+  osc_omega_poiss:        {osc_freq_p if 'STN' in osc_to_poiss else 0.}
   tau_syn_ex:             4.
   tau_syn_in:             8.
   a_adaptive:             0.
@@ -326,7 +326,7 @@ osc_freq:                       {osc_freq}
 ''')
                                         # config to-save
                                         # config_files.append('')
-                                        config_files.append('''- STN: [ 0,  1] ''')
+                                        config_files.append('')
                                         q.put( [(gamma1, gamma2, gamma, osc_freq, osc_amp, osc_to, it), config_files] )
 
 def worker():
