@@ -20,7 +20,7 @@ gamma_s = [1.6]                   # controls intensity of loop1 whitout affectin
 par1 = [0.950]                     # input to D2
 
 
-par2 = ["sigmoidpulse0_002"]            # cambia questo per differenziare: step, rectangular, alpha
+par2 = ["sigmoidpulse_spikes"]            # cambia questo per differenziare: step, rectangular, alpha
 
 # corrente oscillante in pA
 osc_amps = [0.] #pA
@@ -28,7 +28,7 @@ osc_freqs = [0.] #omega
 osc_to = set([]) # set(['D2'])
 
 # input poisson
-osc_amps_poiss = [13000] # amps = t_mid
+osc_amps_poiss = [13000] # amps = t_mid1
 osc_freqs_poiss = [0.002] # freqs = sigm_par
 osc_to_poiss = set(['D2'])
 # external_input_update in network class in model cpp, file out stream to save
