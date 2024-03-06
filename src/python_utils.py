@@ -56,66 +56,74 @@ def readSpikes(file):
 
     return l
 
-def burst_sequence(sequenza):
-    #questa funzione inizia contando gli 1 e poi alterna
-    conteggi = []
-    count = 1
-    prev_element = sequenza[0]
+def burst_sequence(sequence):
+    n = 2 # number of points needed to identify a burst
+    # Initialize variables for counting and tracking elements
+    counts = [] # Stores counts of consecutive 1s or 0s
+    count = 1 # Current count of consecutive elements
+    prev_element = sequence[0] # The previous element in the sequence
 
-    #controlla se il primo elemento è 0 o 1
+    # Determine the starting element for counting
     if prev_element == 0:
-        start_count = 0
+        start_count = 0 # Start counting from 0 if the first element is 0
     else:
-        start_count = 1
+        start_count = 1 # Start counting from 1 if the first element is 1
 
-    #itera su sequenza a partire dal secondo elemento
-    for element in sequenza[1:]:
+    # Loop through the sequence starting from the second element
+    for element in sequence[1:]:
         if element == prev_element:
-            count += 1
+            count += 1 # Increment count if the current element matches the previous one
         else:
-            conteggi.append(count)
-            count = 1
-            prev_element = element
+            counts.append(count) # Append count to the list and reset for a new sequence
+            count = 1 # Reset count for the new element
+            prev_element = element # Update previous element to the current
 
-    conteggi.append(count)
+    counts.append(count) # Append the last count
 
-    #se il primo elemento è 0 inserisci conteggio iniziale come 0
+    # Adjust the initial count if the first element was 0
     if start_count == 0:
-        conteggi.insert(0, 0)
+        counts.insert(0, 0) # Insert a count of 0 at the beginning
 
-    count = 0
-    burst = False
-    index = 0
-    blen = 0
-    lunghezza = []
+    # Initialize variables for burst detection
+    count = 0 # Count of bursts
+    burst = False # Flag to indicate if currently in a burst
+    index = 0 # Index to track position in counts
+    blen = 0 # Length of the current burst
+    length = [] # List to store lengths of each burst
 
-    for element in conteggi[:]:
-        if (index % 2) == 0:
-            if element >= 5:
+    # Loop through the counts to identify bursts
+    for element in counts[:]:
+        if (index % 2) == 0: # Check for sequences of 1s
+            if element >= n: # A burst starts if there are n or more consecutive 1s
                 burst = True
 
-        if (index % 2) == 1:
-            if element >= 5:
+        if (index % 2) == 1: # Check for sequences of 0s
+            if element >= n-1: # End a burst if there are n or more consecutive 0s
                 if burst is True:
-                    burst = False
-                    count += 1
-                    lunghezza.append(blen)
-                    blen = 0
+                    burst = False # End the burst
+                    count += 1 # Increment burst count
+                    length.append(blen) # Add the burst length to the list
+                    blen = 0 # Reset burst length
 
-        index += 1
+        index += 1 # Move to the next element
         if burst is True:
-            blen = blen + element
-    else:
-        if burst is True:
-            count += 1
-            lunghezza.append(blen)
+            blen += element # Add the length of 1s to the current burst length
 
+    # Check for an ongoing burst at the end of the sequence
+    if burst is True:
+        count += 1 # Finalize the last burst
+        length.append(blen) # Add its length to the list
+
+    # Calculate the average burst length
     if count > 0:
-        avarage = sum(lunghezza)/count
-    else: avarage = 0
+        average = sum(length)/count # Calculate average length if there are bursts
+    else: 
+        average = 0 # Set average to 0 if there are no bursts
 
-    print('numero di burst, lunghezza di ogni burst, lunghezza media:', end=' ')
-    return count, lunghezza, avarage
+    # Return the burst count, lengths of each burst, and the average burst length
+    print('number of burst, length of every burst, mean length:', end=' ')
+    return count, length, average
+
 
 class SpikeSim:
     '''Class loading and parsing files given by a simulation.
@@ -330,7 +338,7 @@ class SpikeSim:
 
         print(f'nparseg = {N_parseg}\tnoverlap={noverlap}')
 
-        if save_img == '':
+        if save_img == 'show':
             plt.pcolormesh(t, f, sxx, shading='gouraud')
             plt.ylim(8, 26)
             plt.colorbar()
@@ -338,6 +346,10 @@ class SpikeSim:
             plt.ylabel('f [Hz]')
             plt.xlabel('t [s]')
             plt.show()
+
+        elif save_img == '':
+            pass
+
         else:
             plt.savefig(save_img, dpi = 500, facecolor='white')
             plt.close()
@@ -410,7 +422,7 @@ class SpikeSim:
 
         # con media #######################################################
 
-        mask = (8 < f) & (f < 24)
+        mask = (8 < f) & (f < 26)
         sxx_lim = sxx[mask,:]
 
         pow_t = []

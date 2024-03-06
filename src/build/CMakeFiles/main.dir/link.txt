@@ -1,1 +1,0 @@
-/usr/bin/c++  -pedantic -Wall -Wextra -O3   CMakeFiles/main.dir/main.cpp.o  -o main  libmodel.a -lyaml-cpp 

@@ -501,25 +501,26 @@ void Network::createPops() {
     } // end for over subnets
 }
 
-//double Network::input_func(double y_, double r0_, double A_, double omega_, double t0_, double t_) {
-//    return t_ - t0_ + A_/omega_ * (cos(omega_*t0_) - cos(omega_*t_)) - y_/r0_;
-//}
 
-// PER SCEGLIERE LA FUNZIONE BISOGNA COMMENTARE LE ALTRE: QUI: A_ = t_mid,  omega_ = sigm_par, r0_ è 0.85, 0,1*1.083 è (0.95-0.85)*1.083 
+// PER SCEGLIERE LA FUNZIONE BISOGNA COMMENTARE LE ALTRE: QUI: A_ = t_mid,  omega_ = sigm_par, 0,1*1.083 è (0.95-0.85)*1.083 
 
 double Network::input_func(double y_, double r0_, double A_, double omega_, double t0_, double t_) {
 
     // SIGMOID penso sia corretto questo
-    // return (r0_ + 0.1*1.083)*(t_ - t0_) + 0.1*1.083/omega_ * log((exp(A_ * omega_) + exp(omega_*t0_))/((exp(A_ * omega_) + exp(omega_*t_)))) - y_;
+    // return (0.85*1.083 + 0.1*1.083)*(t_ - t0_) + 0.1*1.083/omega_ * log((exp(A_ * omega_) + exp(omega_*t0_))/((exp(A_ * omega_) + exp(omega_*t_)))) - y_;
 
     // REVERSESIGMOID
-    // return (r0_ + 0.1*1.083)*(t_ - t0_) - 0.1*1.083/omega_ * log((exp(A_ * omega_) + exp(omega_*t0_))/((exp(A_ * omega_) + exp(omega_*t_)))) - y_;
+    // return (0.85*1.083 + 0.1*1.083)*(t_ - t0_) - 0.1*1.083/omega_ * log((exp(A_ * omega_) + exp(omega_*t0_))/((exp(A_ * omega_) + exp(omega_*t_)))) - y_;
 
+    // REVERSEPULSE
+    // return (0.85*1.083)*(t_ - t0_) - 0.1*1.083/omega_ * log((exp(A_ * omega_) + exp(omega_*t0_))/((exp(A_ * omega_) + exp(omega_*t_)))) + 0.1*1.083/omega_ * log((exp((A_+1000) * omega_) + exp(omega_*t0_))/((exp((A_+1000) * omega_) + exp(omega_*t_)))) - y_;
+    
     //SIGMOIDPULSE
-    return (r0_ + 0.1*1.083)*(t_ - t0_) + 0.1*1.083/omega_ * log((exp(A_ * omega_) + exp(omega_*t0_))/((exp(A_ * omega_) + exp(omega_*t_)))) - 0.1*1.083/omega_ * log((exp((A_+10000) * omega_) + exp(omega_*t0_))/((exp((A_+10000) * omega_) + exp(omega_*t_)))) - y_;
-
-    //FLAT
-    //return (A_) * (t_ - t0_);
+     return (0.95*1.083)*(t_ - t0_) + 0.1*1.083/omega_ * log((exp(A_ * omega_) + exp(omega_*t0_))/((exp(A_ * omega_) + exp(omega_*t_)))) - 0.1*1.083/omega_ * log((exp((A_+10000) * omega_) + exp(omega_*t0_))/((exp((A_+10000) * omega_) + exp(omega_*t_)))) - y_;
+    
+    // SIN e FLAT
+    // return t_ - t0_ + A_/omega_ * (cos(omega_*t0_) - cos(omega_*t_)) - y_/r0_;
+    
 }
 
 
@@ -1002,20 +1003,21 @@ double f_sigmoid(double t, double v_up) {
     return v_up + (v_down-v_up)* 1/( 1+ exp( -steepness*(t-t_mid) ) );
 }
 
-double f_reversesigmoid(double t, double v_up) {
-    double steepness, v_down, t_mid;
-    t_mid = 13000;
-    steepness = 0.002;
+double f_reversepulse(double t, double v_up) {
+    double steepness, v_down, t_mid1, t_mid2;
+    t_mid1 = 1400;
+    t_mid2 = 2400;
+    steepness = 0.05;
     v_down = 0.85*1.083;
     
-    return v_down + (v_up-v_down)* 1/( 1+ exp( -steepness*(t-t_mid) ) );
+    return v_down + (v_up-v_down)* 1/( 1+ exp( -steepness*(t-t_mid1) ) ) + (v_down-v_up)* 1/( 1+ exp( -steepness*(t-t_mid2) ) );
 }
 
 double f_sigmoidpulse(double t, double v_up) {
     double steepness, v_down, t_mid1, t_mid2;
-    t_mid1 = 23000;
-    t_mid2 = 53000;
-    steepness = 0.0005;
+    t_mid1 = 13000;
+    t_mid2 = 23000;
+    steepness = 0.002;
     v_down = 0.85*1.083;
     
     return v_up + (v_down-v_up)* 1/( 1+ exp( -steepness*(t-t_mid1) ) ) + (v_up-v_down)* 1/( 1+ exp( -steepness*(t-t_mid2) ) );
@@ -1033,8 +1035,8 @@ void Network::externalInputUpdate() {
     if (input_mode == 0) {        // base mode
         for (auto k=subnets.begin(); k!=subnets.end(); k++) {
             ext_rate = k->ext_in_rate;
-            if (k->name == "D2") { 
-                string shape = ""; //choose shape
+            if (k->name == "D2") { // choose D2
+                string shape = "sigmoidpulse"; //choose shape
 
                 if (shape == "rectangular") {
                     ext_rate = f_rectangular(t, k->ext_in_rate);
@@ -1048,8 +1050,8 @@ void Network::externalInputUpdate() {
                     ext_rate = f_alpha(t, k->ext_in_rate);
                 }
 
-                if (shape == "reversesigmoid") {
-                    ext_rate = f_reversesigmoid(t, k->ext_in_rate);
+                if (shape == "reversepulse") {
+                    ext_rate = f_reversepulse(t, k->ext_in_rate);
                 }
 
                 if (shape == "sigmoid") {
@@ -1064,15 +1066,11 @@ void Network::externalInputUpdate() {
                     ext_rate = f_flat(k->ext_in_rate);
                 }
 
-                if (shape == "") {}
-                
-                
-
                 ofstream      f((out_dir+"/ext_rateD2.txt").c_str(), ios::app  );
                 f << t << "\t" << ext_rate << endl; 
-            }// choose D2
+            }
             
-            if (ext_rate<EPSILON) continue;
+            if (k->ext_in_rate<EPSILON) continue;
 
             for (unsigned i=0; i<k->N; i++) {
             // for neuron in pop
@@ -1081,21 +1079,21 @@ void Network::externalInputUpdate() {
                     tmp_sum = 0;
                     if (k->osc_amp_poiss < EPSILON) {
                         while (tmp_sum < dt) {
-                            tmp_sum += (- log(g.getRandomUniform()) ) / ext_rate;
+                            tmp_sum += (- log(g.getRandomUniform()) ) / k->ext_in_rate;
                             (k->pop)[i].input_t_ex["ext"].push_back(tmp_end + tmp_sum);
                         }
                     }
                     else {
-                        //ofstream        of(out_dir+"/prova_sigm_inp.txt", ios::app); //commented
+                        ofstream        of(out_dir+"/prova_sigm_inp.txt", ios::app); //commented
                         tbar = tmp_end;
                         while (tmp_sum < dt) {
                             tmp_y = - log(g.getRandomUniform());
-                            tbar = find_sol_bisection( tmp_y, 0.85*1.083, k->osc_amp_poiss, k->osc_omega_poiss, tbar ); //0.85*1.083 era k->ext_in_rate
+                            tbar = find_sol_bisection( tmp_y, k->ext_in_rate, k->osc_amp_poiss, k->osc_omega_poiss, tbar );
                             (k->pop)[i].input_t_ex["ext"].push_back(tbar);
                             tmp_sum = tbar - tmp_end;
-                            //of << tbar << endl; //commented
+                            of << tbar << endl; //commented
                         }
-                        //of.close(); //commented
+                        of.close(); //commented
                     }
                 }
             } // end for over neurons

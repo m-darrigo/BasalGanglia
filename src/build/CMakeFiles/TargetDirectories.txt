@@ -1,4 +1,0 @@
-/home/bbpnrsoa/BasalGanglia/src/build/CMakeFiles/rebuild_cache.dir
-/home/bbpnrsoa/BasalGanglia/src/build/CMakeFiles/edit_cache.dir
-/home/bbpnrsoa/BasalGanglia/src/build/CMakeFiles/main.dir
-/home/bbpnrsoa/BasalGanglia/src/build/CMakeFiles/model.dir
